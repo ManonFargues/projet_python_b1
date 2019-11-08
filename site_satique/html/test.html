@@ -1,0 +1,118 @@
+<h1>TP3 - Plusieurs réseaux : routage statique</h1>
+
+<h2>I. Création et utilisation simples d'une VM CentOS :</h2>
+
+<h3>1. Création :</h3>
+
+<p>Installation de la VM CentOS sur VirtualBox faite en cours ensemble.</p>
+
+<h3>2. Installation de l'OS</h3>
+
+<p>Installation de la VM CentOS sur VirtualBox faite en cours ensemble.</p>
+
+<h3>3. Premier boot</h3>
+
+<p>Installation de la VM CentOS sur VirtualBox faite en cours ensemble.</p>
+
+<h3>4. Configuration réseau d'une machine CentOS</h3>
+
+<ul>
+<li>a : Prouver que nous avons internet sur la VM :</li>
+</ul>
+
+<p>J'utilise la commande curl. Une réponse apparaît, je suis donc connectée à internet.</p>
+
+<ul>
+<li>b : Prouver que le PC et la VM communiquent :</li>
+</ul>
+
+<p>J'effectue un ping adresse IP du pc hôte sur la VM. Une réponse apparaît, ils communiquent.</p>
+
+<p>J'effectue un autre ping adresse IP de la VM. Une réponse apparaît, Ils communquent.</p>
+
+<p>Le PC hôte et la Vm communiquent bien dans les deux sens.</p>
+
+<ul>
+<li>c : affichage de la table de routage et explication :</li>
+</ul>
+
+<p>Pour afficher la table de routage on tape ip route sur la VM. 4 lignes apparaissent.</p>
+
+<p>1ère ligne: 
+Cette ligne définie la carte réseau permettant d'accéder au réseaux auquels la machine n'est pas directement connectés, la carte qui renvoit à la passerelle. Ici "dhcp" signifie que la passerelle utilisé est celle donnée automatiquement par le serveur dhcp.</p>
+
+<p>2ème ligne: </p>
+
+<p>→ default via 10.0.2.2 dev enp0s3 proto dhcp metric 100</p>
+
+<p>Cette première ligne définie la carte réseau permettant d'accéder au réseaux auquels la machine n'est pas directement connectés, la carte qui renvoit à la passerelle. 
+Ici "dhcp" signifie que la passerelle utilisé est celle donnée automatiquement par le serveur dhcp.</p>
+
+<p>→ 10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15 metric 100</p>
+
+<p>Cette deuxième ligne indique à la machine que pour accéder à ce précis (ici 10.0.2.0/24) il faut utiliser le lien (carte réseau physique, carte réseau virtuelle ou autre dans certains cas) ayant telle adresse IP (ici 10.0.2.15).</p>
+
+<p>→ 192.168.127.0/24 dev enp0s8 proto kernel scope link src 192.168.127.10 metric 101</p>
+
+<p>Là il s'agit de la même chose que la ligne précedente mais pour le réseau 192.168.127.0/24 via l'adresse 192.168.127.10.</p>
+
+<h3>5. Faire joujou avec quelques commandes</h3>
+
+<ul>
+<li>ping :
+<ul>
+<li>ping hôte → VM : ping 127.0.0.1</li>
+<li>ping VM → hôte : ping 10.33.2.248</li>
+</ul></li>
+<li>afficher la table de routage :
+<ul>
+<li>de l'hôte : route print</li>
+<li>de la VM : ip route</li>
+</ul></li>
+<li>ligne qui leur permet de discuter via le réseau host-only:
+<ul>
+<li>hôte : 127.0.0.1  255.255.255.255  On-link  127.0.0.1  331</li>
+<li>VM : 192.168.127.0/24 dev enp0s8 proto kernel scope link src 192.168.127.10 metric 101</li>
+</ul></li>
+<li>commande dig sur la VM :
+dig Nous permet de trouver l'adresse ip d'un site internet
+<ul>
+<li>pour ynov.com : 10.33.10.20</li>
+<li>pour google.com : 10.33.10.20
+Les 2 IP sont identiques puisque pour aller sur google, nous devons passer par le serveur d'Ynov.</li>
+</ul></li>
+</ul>
+
+<h2>II. Notion de ports et SSH :</h2>
+
+<h3>1. Exploration des ports locaux :</h3>
+
+<p>Pour afficher le port utilisé pour communiquer entre la VM et l'hôte, on utilise la commande ss -4 -n -p à partir de la VM. On obtient alors le port 22.</p>
+
+<h3>2. SSH :</h3>
+
+<p>Je cherche mon IPv4 à partir du fichier ifcg-enp0s8 (IP: 193.168.127.10). Je veux passer de la VM à PowerShell donc je rentre la commande suivante  "ssh root@193.168.127.10" (IP de la vm). On entre dans PowerShell la commande "ss -4 -n -p" qui nous indique que l'utilisateur  <strong>sshd</strong> utilise le port 22. (vu dans le 1.)</p>
+
+<h3>3. Firewall</h3>
+
+<h4>A. SSH :</h4>
+
+<p>Je rentre la commande "sudo nano /etc/ssh/sshd_config" pour modifier le fichier.</p>
+
+<p>Pour vérifier que la modification a bien été prise en compte je rentre la commande suivante ss -4 -n -p. On remarque alors que le port sshd a bien été modifié.</p>
+
+<p>En rentrant la commande "ss" on se rend compte que la connexion échoue car nous avons modifié le port. Il faut donc le remettre en 22 et effectuer la commande "systemctl restart sshd".</p>
+
+<h4>B. Netcat</h4>
+
+<p>Il faut installer netcat avec la commande "yum install nc". Je créer les 3 PowerShells comme dit le tp. On obtient:</p>
+
+<p>→ cv-Q : 0</p>
+
+<p>→ Send - Q : 10</p>
+
+<p>→ Local address: Port : *:5454</p>
+
+<p>→ Peer Address: Port : * : * </p>
+
+<p>→ users:(("nc,pid=11752,fd=4))</p>
